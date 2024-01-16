@@ -1,0 +1,5 @@
+com\vodafone\MonitorThread.class
+com\vodafone\DatabaseThread.class
+com\vodafone\DockerImage.class
+com\vodafone\Main.class
+com\vodafone\ExecutorThread.class

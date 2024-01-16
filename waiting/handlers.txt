@@ -1,0 +1,135 @@
+ private static class HelloHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+			System.out.println("Call has been made on url:'/api/hello' ");
+            // Define the response
+            String response = "Hello Christakis from the REST API!";
+
+            // Set the response headers
+            exchange.getResponseHeaders().set("Content-Type", "text/plain");
+            exchange.sendResponseHeaders(200, response.length());
+
+            // Write the response to the output stream
+            try (OutputStream os = exchange.getResponseBody()) {
+                os.write(response.getBytes());
+            }
+        }
+    }
+	
+	private static class GreetHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            System.out.println("Call has been made on url:'/api/greet'");
+            // Define the response
+            String response = "Greetings from the REST API!";
+
+            // Set the response headers
+            exchange.getResponseHeaders().set("Content-Type", "text/plain");
+            exchange.sendResponseHeaders(200, response.length());
+
+            // Write the response to the output stream
+            try (OutputStream os = exchange.getResponseBody()) {
+                os.write(response.getBytes());
+            }
+        }
+    }
+	
+	private static class GetInstancesHandler implements HttpHandler {
+		@Override
+		public void handle(HttpExchange exchange) throws IOException {
+			try {
+				// Establish an H2 in-memory database connection
+				Connection connection = DriverManager.getConnection("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1;", "username", "password");
+
+				// Execute a query to fetch instances from the database
+				String sql = "SELECT id, image, status FROM images";
+				try (PreparedStatement statement = connection.prepareStatement(sql)) {
+					try (ResultSet resultSet = statement.executeQuery()) {
+						// Build the response based on the query results
+						StringBuilder response = new StringBuilder();
+						while (resultSet.next()) {
+							int id = resultSet.getInt("id");
+							String image = resultSet.getString("image");
+							String status = resultSet.getString("status");
+
+							response.append(String.format("ID: %d, Image: %s, Status: %s%n", id, image, status));
+						}
+
+						// Send the response
+						sendResponse(exchange, 200, response.toString());
+					}
+				}
+
+				// Close the database connection
+				connection.close();
+
+			} catch (SQLException e) {
+				e.printStackTrace();
+				sendResponse(exchange, 500, "Internal Server Error");
+			}
+		}
+
+		private void sendResponse(HttpExchange exchange, int statusCode, String response) throws IOException {
+			exchange.getResponseHeaders().set("Content-Type", "text/plain");
+			exchange.sendResponseHeaders(statusCode, response.length());
+			try (OutputStream os = exchange.getResponseBody()) {
+				os.write(response.getBytes());
+			}
+		}
+	}
+	
+	private static class CreateAndInsertHandler implements HttpHandler {
+
+		@Override
+		public void handle(HttpExchange exchange){
+			try {
+				// System.out.println("Connection to db started..");
+				// // Establish an H2 in-memory database connection
+				// //Connection connection = DriverManager.getConnection("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1;");//, "username", "password");
+				// Connection connection = DriverManager.getConnection("jdbc:h2:mem:test;");//, "username", "password");"jdbc:mysql://localhost:3306/test";
+				// System.out.println("Connection to db ok!");
+				// // Create the "images" table if it doesn't exist
+				// System.out.println("Table creation started...");
+				// createImagesTable(connection);
+				// System.out.println("Table creation ok!");
+
+				// // Insert three mock Docker images into the "images" table
+				// System.out.println("Mock images creaton started...");
+				// insertMockImages(connection);
+				// System.out.println("Mock images creaton ok!");
+				
+				System.out.println("Create and insert started!");
+				
+				Db.deleteCalcsTable();
+				Db.deleteImagesTable();
+				
+				System.out.println("Table deletion finished!");
+				
+				// Send a response
+				sendResponse(exchange, 200, "Table created and mock images inserted successfully.");
+				// Close the database connection
+				//connection.close();
+
+			} catch (Exception e) {
+				try{
+					System.out.println("Internal Exception occured");
+					e.printStackTrace();
+					sendResponse(exchange, 500, "Internal Server Error");			
+								
+				}
+				catch (Exception ex){
+					System.out.println("Another exception occured");
+					e.printStackTrace();
+				}
+		}
+		
+		private void sendResponse(HttpExchange exchange, int statusCode, String response) throws IOException {
+			exchange.getResponseHeaders().set("Content-Type", "text/plain");
+			exchange.sendResponseHeaders(statusCode, response.length());
+			try (OutputStream os = exchange.getResponseBody()) {
+				os.write(response.getBytes());
+			}
+		}
+	
+	}
+	}
